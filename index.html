@@ -1,0 +1,899 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Voice Therapy Engine - Rehabilitation & Biofeedback Dashboard</title>
+  <meta name="description" content="Next-generation Voice Rehabilitation Therapy Engine featuring real-time acoustic biofeedback, interactive anatomical guides, micro-feedback, and gamification." />
+  
+  <!-- Fonts & Icons -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+
+  <style>
+    :root {
+      --bg-primary: #0b0f19;
+      --bg-secondary: #121829;
+      --bg-card: rgba(22, 30, 49, 0.7);
+      --bg-card-hover: rgba(30, 41, 67, 0.85);
+      
+      --accent-cyan: #00f2fe;
+      --accent-blue: #4facfe;
+      --accent-purple: #7f00ff;
+      --accent-pink: #e100ff;
+      --accent-emerald: #00f5a0;
+      --accent-amber: #ffb703;
+      --accent-rose: #ff2a6d;
+
+      --text-main: #f1f5f9;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      
+      --border-color: rgba(255, 255, 255, 0.08);
+      --glass-glow: 0 8px 32px 0 rgba(0, 242, 254, 0.12);
+      --card-radius: 18px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-primary);
+      color: var(--text-main);
+      min-height: 100vh;
+      overflow-x: hidden;
+      background-image: 
+        radial-gradient(circle at 10% 20%, rgba(0, 242, 254, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 90% 80%, rgba(127, 0, 255, 0.08) 0%, transparent 40%);
+    }
+
+    h1, h2, h3, h4, h5, h6 {
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* Layout */
+    .app-container {
+      display: grid;
+      grid-template-columns: 280px 1fr 340px;
+      grid-template-rows: 70px 1fr;
+      height: 100vh;
+      overflow: hidden;
+    }
+
+    /* Header */
+    header {
+      grid-column: 1 / -1;
+      background: rgba(18, 24, 41, 0.8);
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 24px;
+      z-index: 10;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 1.25rem;
+      font-weight: 700;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .brand-icon {
+      width: 40px;
+      height: 40px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #fff;
+      font-size: 1.2rem;
+      box-shadow: 0 0 15px rgba(0, 242, 254, 0.4);
+    }
+
+    .header-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status-badge {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 14px;
+      border-radius: 20px;
+      background: rgba(0, 245, 160, 0.1);
+      border: 1px solid rgba(0, 245, 160, 0.3);
+      color: var(--accent-emerald);
+      font-size: 0.85rem;
+      font-weight: 600;
+    }
+
+    .status-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: var(--accent-emerald);
+      box-shadow: 0 0 8px var(--accent-emerald);
+      animation: pulse 2s infinite;
+    }
+
+    /* Sidebar - Module Selector */
+    sidebar {
+      background: var(--bg-secondary);
+      border-right: 1px solid var(--border-color);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .module-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 14px 16px;
+      cursor: pointer;
+      transition: all 0.25s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .module-card:hover {
+      background: var(--bg-card-hover);
+      border-color: rgba(0, 242, 254, 0.3);
+      transform: translateY(-2px);
+    }
+
+    .module-card.active {
+      background: linear-gradient(135deg, rgba(0, 242, 254, 0.15), rgba(127, 0, 255, 0.15));
+      border-color: var(--accent-cyan);
+      box-shadow: 0 0 20px rgba(0, 242, 254, 0.2);
+    }
+
+    .module-card.active::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 4px;
+      background: var(--accent-cyan);
+    }
+
+    .module-category {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--accent-cyan);
+      text-transform: uppercase;
+      margin-bottom: 4px;
+    }
+
+    .module-name {
+      font-size: 0.95rem;
+      font-weight: 600;
+      margin-bottom: 6px;
+      color: #fff;
+    }
+
+    .module-meta {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+    }
+
+    /* Main Area: Exercise Studio */
+    main {
+      padding: 24px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .studio-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      backdrop-filter: blur(10px);
+    }
+
+    .studio-info h2 {
+      font-size: 1.5rem;
+      margin-bottom: 6px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .biofeedback-tag {
+      font-size: 0.75rem;
+      padding: 4px 10px;
+      border-radius: 12px;
+      background: rgba(127, 0, 255, 0.2);
+      border: 1px solid rgba(127, 0, 255, 0.4);
+      color: var(--accent-pink);
+    }
+
+    /* Primary Biofeedback Display */
+    .biofeedback-grid {
+      display: grid;
+      grid-template-columns: 2fr 1fr;
+      gap: 20px;
+    }
+
+    .visual-stage {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 380px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Visualizer Canvas */
+    .visualizer-canvas {
+      width: 100%;
+      height: 240px;
+      border-radius: 12px;
+      background: rgba(10, 14, 26, 0.9);
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      position: relative;
+    }
+
+    canvas {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
+
+    /* Live Micro-feedback Alert */
+    .feedback-banner {
+      width: 100%;
+      margin-top: 16px;
+      padding: 12px 18px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.3s ease;
+    }
+
+    .feedback-banner.info {
+      background: rgba(79, 172, 254, 0.15);
+      border: 1px solid rgba(79, 172, 254, 0.4);
+      color: var(--accent-cyan);
+    }
+
+    .feedback-banner.warning {
+      background: rgba(255, 183, 3, 0.15);
+      border: 1px solid rgba(255, 183, 3, 0.4);
+      color: var(--accent-amber);
+    }
+
+    .feedback-banner.success {
+      background: rgba(0, 245, 160, 0.15);
+      border: 1px solid rgba(0, 245, 160, 0.4);
+      color: var(--accent-emerald);
+    }
+
+    /* Metrics Control Panel */
+    .metrics-panel {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .metric-card {
+      background: rgba(10, 14, 26, 0.6);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .metric-value {
+      font-size: 1.4rem;
+      font-weight: 700;
+      font-family: 'Outfit', sans-serif;
+      display: flex;
+      align-items: baseline;
+      gap: 4px;
+    }
+
+    .metric-unit {
+      font-size: 0.8rem;
+      color: var(--text-dim);
+      font-weight: 400;
+    }
+
+    .progress-bar-bg {
+      width: 100%;
+      height: 8px;
+      background: rgba(255, 255, 255, 0.08);
+      border-radius: 4px;
+      margin-top: 8px;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .progress-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      background: linear-gradient(90deg, var(--accent-cyan), var(--accent-emerald));
+      width: 45%;
+      transition: width 0.2s ease;
+    }
+
+    .target-zone {
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      background: rgba(0, 245, 160, 0.25);
+      border-left: 1px solid var(--accent-emerald);
+      border-right: 1px solid var(--accent-emerald);
+    }
+
+    /* Controls */
+    .controls-row {
+      display: flex;
+      gap: 16px;
+    }
+
+    .btn {
+      flex: 1;
+      padding: 14px 20px;
+      border-radius: 12px;
+      font-family: 'Outfit', sans-serif;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: all 0.25s ease;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+      color: #040914;
+      box-shadow: 0 4px 20px rgba(0, 242, 254, 0.3);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 25px rgba(0, 242, 254, 0.5);
+    }
+
+    /* Step Sequence */
+    .steps-container {
+      background: var(--bg-card);
+      border: 1px solid var(--border-color);
+      border-radius: var(--card-radius);
+      padding: 20px;
+    }
+
+    .steps-list {
+      display: flex;
+      gap: 12px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+    }
+
+    .step-item {
+      flex: 1;
+      min-width: 220px;
+      background: rgba(10, 14, 26, 0.5);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+      padding: 14px;
+      position: relative;
+    }
+
+    .step-item.active {
+      border-color: var(--accent-cyan);
+      background: rgba(0, 242, 254, 0.05);
+    }
+
+    .step-number {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: var(--accent-cyan);
+      margin-bottom: 6px;
+    }
+
+    .step-text {
+      font-size: 0.85rem;
+      color: var(--text-main);
+      line-height: 1.4;
+    }
+
+    /* Right Panel: Gamification & Rewards */
+    aside {
+      background: var(--bg-secondary);
+      border-left: 1px solid var(--border-color);
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .gamification-card {
+      background: linear-gradient(145deg, rgba(127, 0, 255, 0.15), rgba(225, 0, 255, 0.05));
+      border: 1px solid rgba(127, 0, 255, 0.3);
+      border-radius: var(--card-radius);
+      padding: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .cube-counter {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      margin-top: 12px;
+    }
+
+    .cube-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--accent-purple), var(--accent-pink));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      color: #fff;
+      box-shadow: 0 0 20px rgba(225, 0, 255, 0.4);
+    }
+
+    .avatar-preview {
+      width: 100%;
+      height: 160px;
+      border-radius: 14px;
+      background: rgba(10, 14, 26, 0.7);
+      border: 1px dashed var(--border-color);
+      margin-top: 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      position: relative;
+    }
+
+    .avatar-avatar-img {
+      font-size: 4rem;
+      filter: drop-shadow(0 0 15px rgba(0, 242, 254, 0.5));
+    }
+
+    .accessory-badge {
+      position: absolute;
+      bottom: 10px;
+      right: 10px;
+      background: rgba(255, 183, 3, 0.2);
+      border: 1px solid var(--accent-amber);
+      color: var(--accent-amber);
+      padding: 4px 8px;
+      border-radius: 8px;
+      font-size: 0.7rem;
+      font-weight: 600;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% { transform: scale(0.95); opacity: 0.8; }
+      50% { transform: scale(1.05); opacity: 1; }
+      100% { transform: scale(0.95); opacity: 0.8; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Header -->
+    <header>
+      <div class="brand">
+        <div class="brand-icon">
+          <i class="fa-solid fa-wave-square"></i>
+        </div>
+        <span>VoiceTherapy Engine</span>
+      </div>
+
+      <div class="header-actions">
+        <div class="status-badge">
+          <div class="status-dot"></div>
+          <span>Audio Engine Active</span>
+        </div>
+        <div style="font-size: 0.85rem; color: var(--text-muted);">
+          Program ID: <strong style="color: #fff;" id="programIdDisplay">vocal_fold_rehab_v1</strong> (v1.0.0)
+        </div>
+      </div>
+    </header>
+
+    <!-- Sidebar: Technique Modules -->
+    <sidebar>
+      <div class="sidebar-title">Technique Modules</div>
+      <div id="moduleList"></div>
+    </sidebar>
+
+    <!-- Main Studio -->
+    <main>
+      <div class="studio-header">
+        <div class="studio-info">
+          <h2 id="currentModuleName">Yawn-Sigh Technique</h2>
+          <div style="display: flex; gap: 8px; margin-top: 6px;">
+            <span class="biofeedback-tag" id="currentBiofeedbackType">Biofeedback: laryngeal_height_breathiness</span>
+            <span class="biofeedback-tag" style="background: rgba(0,242,254,0.1); color: var(--accent-cyan); border-color: rgba(0,242,254,0.3);" id="currentCategory">Symptom-Reducing Therapy</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="biofeedback-grid">
+        <!-- Visualizer & Realtime Feedback Stage -->
+        <div class="visual-stage">
+          <div class="visualizer-canvas">
+            <canvas id="biofeedbackCanvas"></canvas>
+          </div>
+          
+          <div class="feedback-banner info" id="liveMicroFeedback">
+            <i class="fa-solid fa-circle-info"></i>
+            <span id="feedbackText">Simulating real-time laryngeal lowering biofeedback...</span>
+          </div>
+        </div>
+
+        <!-- Realtime Pitch & dB Target Gauges -->
+        <div class="metrics-panel">
+          <h4 style="font-size: 0.9rem; color: var(--text-muted);">LIVE ACOUSTIC TARGETS</h4>
+          
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>SOUND INTENSITY (dB)</span>
+              <span id="dbTargetRange">Target: 60 - 85 dB</span>
+            </div>
+            <div class="metric-value">
+              <span id="currentDbValue">68.5</span>
+              <span class="metric-unit">dB</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="target-zone" style="left: 40%; width: 45%;"></div>
+              <div class="progress-bar-fill" id="dbBarFill" style="width: 55%;"></div>
+            </div>
+          </div>
+
+          <div class="metric-card">
+            <div class="metric-header">
+              <span>PITCH / FUNDAMENTAL FREQ</span>
+              <span id="pitchTargetRange">Target: 120 - 220 Hz</span>
+            </div>
+            <div class="metric-value">
+              <span id="currentPitchValue">165.2</span>
+              <span class="metric-unit">Hz</span>
+            </div>
+            <div class="progress-bar-bg">
+              <div class="target-zone" style="left: 30%; width: 50%;"></div>
+              <div class="progress-bar-fill" id="pitchBarFill" style="width: 62%; background: linear-gradient(90deg, var(--accent-purple), var(--accent-pink));"></div>
+            </div>
+          </div>
+
+          <div class="controls-row">
+            <button class="btn btn-primary" id="toggleSessionBtn">
+              <i class="fa-solid fa-play"></i> Start Biofeedback
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Execution Steps -->
+      <div class="steps-container">
+        <h4 style="font-size: 0.9rem; color: var(--text-muted); margin-bottom: 12px;">STEP-BY-STEP REHABILITATION GUIDANCE</h4>
+        <div class="steps-list" id="stepsListContainer"></div>
+      </div>
+    </main>
+
+    <!-- Right Sidebar: Gamification -->
+    <aside>
+      <div class="gamification-card">
+        <h3 style="font-size: 1.1rem; color: #fff;">Gamification & Rewards</h3>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;">Earn Energy Cubes by completing daily voice therapy exercises.</p>
+
+        <div class="cube-counter">
+          <div class="cube-icon">
+            <i class="fa-solid fa-cube"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;" id="energyCubeBalance">45</div>
+            <div style="font-size: 0.75rem; color: var(--accent-pink);">Energy Cubes Earned</div>
+          </div>
+        </div>
+
+        <div style="margin-top: 16px; font-size: 0.8rem; display: flex; justify-content: space-between;">
+          <span style="color: var(--text-muted);">Daily Target:</span>
+          <strong style="color: var(--accent-emerald);" id="dailyTargetDisplay">15 Min / Day</strong>
+        </div>
+      </div>
+
+      <div class="gamification-card" style="background: rgba(18, 24, 41, 0.7); border-color: var(--border-color);">
+        <h4 style="font-size: 0.95rem; color: #fff;">Active Avatar Buddy</h4>
+        <div class="avatar-preview">
+          <div class="avatar-avatar-img" id="activeAvatarIcon">🤖</div>
+          <div style="margin-top: 8px; font-weight: 600; font-size: 0.9rem;" id="activeAvatarName">VocalBot Prime</div>
+          <div class="accessory-badge" id="activeAccessory">Holographic Visor (+10 Cubes)</div>
+        </div>
+
+        <div style="margin-top: 16px;">
+          <div class="sidebar-title">Unlockable Avatars</div>
+          <div id="avatarList" style="display: flex; flex-direction: column; gap: 8px;"></div>
+        </div>
+      </div>
+    </aside>
+  </div>
+
+  <script>
+    // Store schema and active state
+    let schemaData = null;
+    let activeModule = null;
+    let isBiofeedbackRunning = false;
+    let animationFrameId = null;
+
+    // Canvas biofeedback simulation
+    const canvas = document.getElementById('biofeedbackCanvas');
+    const ctx = canvas.getContext('2d');
+
+    function resizeCanvas() {
+      if (canvas && canvas.parentElement) {
+        canvas.width = canvas.parentElement.clientWidth;
+        canvas.height = canvas.parentElement.clientHeight;
+      }
+    }
+    window.addEventListener('resize', resizeCanvas);
+
+    // Fetch and initialize schema
+    async function initEngine() {
+      try {
+        const response = await fetch('./schema.json');
+        schemaData = await response.json();
+        
+        document.getElementById('programIdDisplay').innerText = schemaData.programId || 'vocal_fold_rehab_v1';
+        if (schemaData.avatarGamification) {
+          document.getElementById('dailyTargetDisplay').innerText = `${schemaData.avatarGamification.dailyTargetMinutes || 15} Min / Day`;
+          document.getElementById('energyCubeBalance').innerText = schemaData.avatarGamification.energyCubeRewardPerModule * 3 || 45;
+          renderAvatars();
+        }
+        
+        if (schemaData.techniqueModules) {
+          renderModuleList();
+          if (schemaData.techniqueModules.length > 0) {
+            selectModule(schemaData.techniqueModules[0]);
+          }
+        }
+      } catch (err) {
+        console.error('Error loading schema.json:', err);
+      }
+    }
+
+    function renderModuleList() {
+      const container = document.getElementById('moduleList');
+      container.innerHTML = '';
+
+      if (!schemaData || !schemaData.techniqueModules) return;
+
+      schemaData.techniqueModules.forEach(mod => {
+        const card = document.createElement('div');
+        card.className = `module-card ${activeModule && activeModule.id === mod.id ? 'active' : ''}`;
+        card.onclick = () => selectModule(mod);
+
+        card.innerHTML = `
+          <div class="module-category">${mod.category || 'Therapy'}</div>
+          <div class="module-name">${mod.name || mod.id}</div>
+          <div class="module-meta">
+            <span>Biofeedback: ${mod.biofeedbackType || 'N/A'}</span>
+            <span>${mod.steps ? mod.steps.length : 0} Steps</span>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function selectModule(mod) {
+      activeModule = mod;
+      renderModuleList();
+
+      document.getElementById('currentModuleName').innerText = mod.name || mod.id;
+      document.getElementById('currentCategory').innerText = mod.category || 'Therapy Module';
+      document.getElementById('currentBiofeedbackType').innerText = `Biofeedback: ${mod.biofeedbackType || 'Acoustic'}`;
+
+      // Update metrics targets
+      const metrics = mod.targetAcousticMetrics || {};
+      document.getElementById('dbTargetRange').innerText = `Target: ${metrics.minDb || 60} - ${metrics.maxDb || 85} dB`;
+      document.getElementById('pitchTargetRange').innerText = `Target: ${metrics.targetPitchHzMin || 120} - ${metrics.targetPitchHzMax || 220} Hz`;
+
+      // Render Steps
+      if (mod.steps) renderSteps(mod.steps);
+      
+      // Update microfeedback banner initial state
+      if (mod.microFeedbackRules && mod.microFeedbackRules.length > 0) {
+        const initialRule = mod.microFeedbackRules[0];
+        setMicroFeedback(initialRule.alertMessage, initialRule.severity);
+      } else {
+        setMicroFeedback('Keep pitch steady and maintain relaxed breathing.', 'info');
+      }
+    }
+
+    function renderSteps(steps) {
+      const container = document.getElementById('stepsListContainer');
+      container.innerHTML = '';
+
+      steps.forEach((step, idx) => {
+        const item = document.createElement('div');
+        item.className = `step-item ${idx === 0 ? 'active' : ''}`;
+        item.innerHTML = `
+          <div class="step-number">STEP ${step.stepNumber} • ${step.visualGuideType}</div>
+          <div class="step-text">${step.instruction}</div>
+          ${step.durationSeconds ? `<div style="font-size:0.75rem; color:var(--accent-cyan); margin-top:6px;"><i class="fa-regular fa-clock"></i> ${step.durationSeconds} seconds</div>` : ''}
+        `;
+        container.appendChild(item);
+      });
+    }
+
+    function renderAvatars() {
+      if (!schemaData.avatarGamification || !schemaData.avatarGamification.unlockableAvatars) return;
+      const avatars = schemaData.avatarGamification.unlockableAvatars;
+      const container = document.getElementById('avatarList');
+      container.innerHTML = '';
+
+      avatars.forEach(av => {
+        const div = document.createElement('div');
+        div.style.cssText = `
+          display: flex; align-items: center; justify-content: space-between;
+          background: rgba(10, 14, 26, 0.6); padding: 8px 12px; border-radius: 8px; font-size: 0.8rem;
+        `;
+        div.innerHTML = `
+          <span>🤖 ${av.name}</span>
+          <span style="color: var(--accent-amber); font-weight:600;">${av.requiredCubes} Cubes</span>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function setMicroFeedback(message, severity = 'info') {
+      const banner = document.getElementById('liveMicroFeedback');
+      banner.className = `feedback-banner ${severity}`;
+      document.getElementById('feedbackText').innerText = message;
+    }
+
+    // Toggle Biofeedback Simulation
+    const toggleBtn = document.getElementById('toggleSessionBtn');
+    toggleBtn.onclick = () => {
+      isBiofeedbackRunning = !isBiofeedbackRunning;
+      if (isBiofeedbackRunning) {
+        toggleBtn.innerHTML = `<i class="fa-solid fa-pause"></i> Pause Biofeedback`;
+        toggleBtn.style.background = 'linear-gradient(135deg, var(--accent-amber), var(--accent-rose))';
+        animateBiofeedback();
+      } else {
+        toggleBtn.innerHTML = `<i class="fa-solid fa-play"></i> Start Biofeedback`;
+        toggleBtn.style.background = 'linear-gradient(135deg, var(--accent-cyan), var(--accent-blue))';
+        cancelAnimationFrame(animationFrameId);
+      }
+    };
+
+    // Canvas Sine Wave & Acoustic Metric Animation
+    let phase = 0;
+    function animateBiofeedback() {
+      resizeCanvas();
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      // Draw Grid
+      ctx.strokeStyle = 'rgba(255, 255, 255, 0.05)';
+      ctx.lineWidth = 1;
+      for (let x = 0; x < canvas.width; x += 30) {
+        ctx.beginPath();
+        ctx.moveTo(x, 0);
+        ctx.lineTo(x, canvas.height);
+        ctx.stroke();
+      }
+      for (let y = 0; y < canvas.height; y += 30) {
+        ctx.beginPath();
+        ctx.moveTo(0, y);
+        ctx.lineTo(canvas.width, y);
+        ctx.stroke();
+      }
+
+      // Draw Simulated Acoustic Waveform
+      ctx.beginPath();
+      ctx.lineWidth = 3;
+      ctx.strokeStyle = '#00f2fe';
+      
+      const cy = canvas.height / 2;
+      const amp = 40 + Math.sin(phase * 2) * 15;
+      
+      for (let x = 0; x < canvas.width; x++) {
+        const y = cy + Math.sin(x * 0.02 + phase) * amp * Math.cos(x * 0.005);
+        if (x === 0) ctx.moveTo(x, y);
+        else ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      phase += 0.05;
+
+      // Randomize subtle values for pitch and dB readout
+      const simDb = (65 + Math.sin(phase) * 8).toFixed(1);
+      const simPitch = (160 + Math.cos(phase * 1.5) * 20).toFixed(1);
+
+      document.getElementById('currentDbValue').innerText = simDb;
+      document.getElementById('currentPitchValue').innerText = simPitch;
+
+      document.getElementById('dbBarFill').style.width = `${Math.min(100, (simDb / 100) * 100)}%`;
+      document.getElementById('pitchBarFill').style.width = `${Math.min(100, (simPitch / 300) * 100)}%`;
+
+      // Trigger microfeedback alerts dynamically
+      if (activeModule && activeModule.microFeedbackRules) {
+        const rules = activeModule.microFeedbackRules;
+        if (simDb < 60 && rules[0]) {
+          setMicroFeedback(rules[0].alertMessage, rules[0].severity);
+        } else if (simDb >= 60 && rules[1]) {
+          setMicroFeedback(rules[1].alertMessage, rules[1].severity);
+        }
+      }
+
+      if (isBiofeedbackRunning) {
+        animationFrameId = requestAnimationFrame(animateBiofeedback);
+      }
+    }
+
+    // Initialize on load
+    window.onload = () => {
+      resizeCanvas();
+      initEngine();
+    };
+  </script>
+</body>
+</html>
